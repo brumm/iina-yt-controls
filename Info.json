@@ -1,0 +1,16 @@
+{
+  "name": "YouTube Controls",
+  "identifier": "com.brumm.iina-yt-controls",
+  "version": "1.0.0",
+  "description": "YouTube-style keyboard controls for IINA: 0-9 for percentage seeking, j/k/l for -10s/pause/+10s, <> for frame stepping",
+  "author": {
+    "name": "Philipp Brumm",
+    "email": "",
+    "url": ""
+  },
+  "entry": "dist/index.js",
+  "permissions": [
+    "show-osd"
+  ],
+  "allowedDomains": []
+}
