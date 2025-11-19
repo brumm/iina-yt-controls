@@ -9,8 +9,6 @@
     "url": ""
   },
   "entry": "dist/index.js",
-  "permissions": [
-    "show-osd"
-  ],
+  "permissions": ["video-overlay"],
   "allowedDomains": []
 }
