@@ -1,82 +1,60 @@
-const { console, core, input, mpv, overlay } = iina
-
-overlay.simpleMode()
-overlay.setStyle(`
-  .seek-indicator {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: transparent;
-    padding: 20px 30px;
-    border-radius: 20px;
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-    font-family: --apple-system, BlinkMacSystemFont, "Inter V";
-    font-size: 48px;
-    font-weight: bold;
-    color: white;
-    font-variant-numeric: tabular-nums;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
-  }
-  .seek-indicator.left {
-    left: 40px;
-  }
-  .seek-indicator.right {
-    right: 40px;
-  }
-  .seek-indicator.visible {
-    opacity: 1;
-  }
-`)
-overlay.setContent(`
-  <div id="seek-left" class="seek-indicator left"></div>
-  <div id="seek-right" class="seek-indicator right"></div>
-`)
-overlay.show()
-overlay.setClickable(false)
+const { console, core, event, input, mpv, overlay } = iina
 
 const DEBOUNCE_TIMEOUT = 300
 
 let seekBuffer = 0
 let seekTimeout = null
 let lastSeekDirection = null
+let overlayReady = false
 
-function showSeekIndicator(direction, amount) {
-  const sign = direction > 0 ? '+' : ''
-  const elementId = direction > 0 ? 'seek-right' : 'seek-left'
+// Wait for window to load before initializing
+event.on("iina.window-loaded", () => {
+  console.log("YouTube Controls: Initializing overlay")
 
-  overlay.postMessage({
-    type: 'updateSeek',
-    elementId,
-    text: `${sign}${amount}`,
-    show: true,
-  })
-
-  // Clear existing timeout
-  if (seekTimeout) {
-    clearTimeout(seekTimeout)
-  }
-
-  // Hide after delay and execute seek
-  seekTimeout = setTimeout(() => {
-    overlay.postMessage({
-      type: 'updateSeek',
-      elementId,
-      show: false,
-    })
-
-    // Execute the buffered seek
-    if (seekBuffer !== 0) {
-      core.seek(seekBuffer)
-      seekBuffer = 0
-      lastSeekDirection = null
+  overlay.simpleMode()
+  overlay.setStyle(`
+    .seek-indicator {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: transparent;
+      padding: 20px 30px;
+      border-radius: 20px;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+      font-family: --apple-system, BlinkMacSystemFont, "Inter V";
+      font-size: 48px;
+      font-weight: bold;
+      color: white;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
     }
-  }, DEBOUNCE_TIMEOUT)
-}
+    .seek-indicator.left {
+      left: 40px;
+    }
+    .seek-indicator.right {
+      right: 40px;
+    }
+    .seek-indicator.visible {
+      opacity: 1;
+    }
+  `)
+  overlay.setContent(`
+    <div id="seek-left" class="seek-indicator left"></div>
+    <div id="seek-right" class="seek-indicator right"></div>
+  `)
+  overlay.show()
+  overlay.setClickable(false)
 
-overlay.loadFile = null
+  overlayReady = true
+  console.log("YouTube Controls: Overlay initialized")
+})
 
 function updateOverlaySeek(elementId, text, show) {
+  if (!overlayReady) {
+    return
+  }
+
   const content = `
     <div id="seek-left" class="seek-indicator left ${
       elementId === 'seek-left' && show ? 'visible' : ''
